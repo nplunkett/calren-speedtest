@@ -36,7 +36,7 @@
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                     <button type="button" class="btn btn-primary btn-lg px-4 gap-3" id="testRun" onclick="runTest()">Run test</button>
                 </div>
-                <div class="col-lg-6 mx-auto" style="max-width: 35em; text-align: left !important; padding-top: 3em;">
+                <div class="col-lg-6 mx-auto" style="max-width: 35em; text-align: left !important; padding-top: 3em; display: none;" id="results">
                     <table class="table">
                         <tbody>
                           <tr>
@@ -63,8 +63,13 @@
                       </table>
                 </div>
                 <script type="text/javascript">
+                  function togglediv(id) {
+                      var div = document.getElementById(id);
+                      div.style.display = div.style.display == "block" ? "none" : "block";
+                  }
                     function runTest() {
                         document.getElementById("testRun").disabled = true;
+                        togglediv('results')
                     ndt7.test(
                         {
                             userAcceptedDataPolicy: true,
@@ -129,7 +134,7 @@
                     });
                 }
                 </script>
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center" style="padding-top:1em;">
                   <button type="button" class="btn btn-outline-secondary" onclick="togglediv('learnMore')">Learn more</button>
                 </div>
                 <div class="col-lg-6 mx-auto" id="learnMore" style="display: none; padding-top: 1em;">
@@ -144,10 +149,7 @@
 
                 </div>
                 <script type="text/javascript">
-                  function togglediv(id) {
-                      var div = document.getElementById(id);
-                      div.style.display = div.style.display == "block" ? "none" : "block";
-                  }
+
                 </script>
             </div>
           </div>

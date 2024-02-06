@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Run a speed test on the CalREN network using M-Labs hardware deployed on our backbone.">
+    <meta name="author" content="Nick Plunkett, CENIC Network Engineering">
+    <!-- NDT JS-->
+    <script src="src/ndt7.js" type="text/javascript"></script>
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <title>CalREN Speed Test - Demo</title>
+  </head>
+  <body>
+        <div class="container">
+            <header class="d-flex flex-wrap justify-content-center py-1 mb-4 border-bottom">
+              <a href="index.html" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-speedometer" viewBox="0 0 16 16">
+                  <path d="M8 2a.5.5 0 0 1 .5.5V4a.5.5 0 0 1-1 0V2.5A.5.5 0 0 1 8 2M3.732 3.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707M2 8a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 8m9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5m.754-4.246a.39.39 0 0 0-.527-.02L7.547 7.31A.91.91 0 1 0 8.85 8.569l3.434-4.297a.39.39 0 0 0-.029-.518z"/>
+                  <path fill-rule="evenodd" d="M6.664 15.889A8 8 0 1 1 9.336.11a8 8 0 0 1-2.672 15.78zm-4.665-4.283A11.95 11.95 0 0 1 8 10c2.186 0 4.236.585 6.001 1.606a7 7 0 1 0-12.002 0"/>
+                </svg>
+                <span class="fs-4" style="padding-left: 0.25em;">CalREN Speed Test</span>
+              </a>
+        
+              <ul class="nav nav-pills">
+                <li class="nav-item"><a href="https://www.measurementlab.net/privacy/" class="nav-link">Privacy</a></li>
+                <li class="nav-item"><a href="https://cenic.org/network/operations" class="nav-link">Contact</a></li>
+              </ul>
+            </header>
+          </div>
+
+          <div class="px-4 my-5 text-center">
+            <div class="col-lg-6 mx-auto">
+                <p class="lead mb-4">By running the test, I agree to the <a href="https://www.measurementlab.net/privacy/">data policy</a> which includes retention and publication of IP addresses by M-Lab.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <button type="button" class="btn btn-primary btn-lg px-4 gap-3" id="testRun" onclick="runTest()">Run test</button>
+                </div>
+                <div class="col-lg-6 mx-auto" style="max-width: 35em; text-align: left !important; padding-top: 3em;">
+                    <table class="table">
+                        <tbody>
+                          <tr>
+                            <th scope="row">Endpoint: </th>
+                            <td id="server"></td>
+                          </tr>
+                          <tr>
+                            <th scope="row">City: </th>
+                            <td id="city"></td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Latency: </th>
+                            <td id="latency"></td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Download Speed: </th>
+                            <td id="download"></td>
+                          </tr>
+                          <tr>
+                            <th scope="row">Upload Speed: </th>
+                            <td id="upload"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                </div>
+                <script type="text/javascript">
+                    function runTest() {
+                        document.getElementById("testRun").disabled = true;
+                    ndt7.test(
+                        {
+                            userAcceptedDataPolicy: true,
+                            downloadworkerfile: "src/ndt7-download-worker.js",
+                            uploadworkerfile: "src/ndt7-upload-worker.js",
+                            metadata: {
+                                client_name: 'ndt7-html-example',
+                                site: 'lax04',
+                            },
+                        },
+                        {
+                            serverChosen: function (server) {
+                                console.log('Testing to:', {
+                                    machine: server.machine,
+                                    locations: server.location,
+                                });
+                                document.getElementById('server').innerHTML = '' + server.machine + '';
+                                document.getElementById('city').innerHTML = '' + server.location.city + '';
+                            },
+                            downloadMeasurement: function (data) {
+                                if (data.Source === 'client') {
+                                    document.getElementById('download').innerHTML = '' + data.Data.MeanClientMbps.toFixed(2) + ' Mb/s';
+                                }
+                            },
+                            downloadComplete: function (data) {
+                                // (bytes/second) * (bits/byte) / (megabits/bit) = Mbps
+                                const serverBw = data.LastServerMeasurement.BBRInfo.BW * 8 / 1000000;
+                                const clientGoodput = data.LastClientMeasurement.MeanClientMbps;
+                                const clientLatency = (data.LastServerMeasurement.TCPInfo.MinRTT / 1000).toFixed(0) + ' ms';
+                                console.log(
+                                    `Download test is complete:
+                Instantaneous server bottleneck bandwidth estimate: ${serverBw} Mbps
+                Mean client goodput: ${clientGoodput} Mbps`);
+                                document.getElementById('download').innerHTML = '' + clientGoodput.toFixed(2) + ' Mb/s';
+                                document.getElementById('latency').innerHTML = '' + clientLatency + '';
+                            },
+                            uploadMeasurement: function (data) {
+                                if (data.Source === 'server') {
+                                    document.getElementById('upload').innerHTML = '' + (data.Data.TCPInfo.BytesReceived /
+                                        data.Data.TCPInfo.ElapsedTime * 8).toFixed(2) + ' Mb/s';;
+                                }
+                            },
+                            uploadComplete: function(data) {
+                                const bytesReceived = data.LastServerMeasurement.TCPInfo.BytesReceived;
+                                const elapsed = data.LastServerMeasurement.TCPInfo.ElapsedTime;
+                                // bytes * bits/byte / microseconds = Mbps
+                                const throughput =
+                                bytesReceived * 8 / elapsed;
+                                console.log(
+                                    `Upload test completed in ${(elapsed / 1000000).toFixed(2)}s
+                    Mean server throughput: ${throughput} Mbps`);
+                                document.getElementById("testRun").disabled = false;
+                            },
+                            error: function (err) {
+                                console.log('Error while running the test:', err.message);
+                                document.getElementById("testRun").disabled = false;
+                            },
+                        },
+                    ).then((exitcode) => {
+                        console.log("ndt7 test completed with exit code:", exitcode)
+                        document.getElementById("testRun").disabled = false;
+                    });
+                }
+                </script>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                  <button type="button" class="btn btn-outline-secondary" onclick="togglediv('learnMore')">Learn more</button>
+                </div>
+                <div class="col-lg-6 mx-auto" id="learnMore" style="display: none; padding-top: 1em;">
+                  <h1>What is this test?</h1>
+                  <p class="lead mb-4">This service runs an <a href="https://www.measurementlab.net/tests/ndt/">NDT test</a> between your end device and the endpoints hosted across CalREN in collaboration with M-Lab.</p><br />
+                  <h3>What speed should I expect to see?</h3>
+                  <p class="lead mb-4">The servers can currently sustain a maximum test speed of around 800Mb/s. If you get at or around this number, assume a successful test.</p><br />
+                  <h3>Where are the endpoints located?</h1>
+                  <p class="lead mb-4">CENIC engineers have deployed these test endpoints in strategic locations across our backbone to ensure accurate test results. Our initial deployment is in Los Angeles, with expansion to Sunnyvale and the Central Valley within the coming months.</p><br />
+                  <h3>What data is collected when I run the test?</h2>
+                  <p class="lead mb-4">Please refer to M-Lab's <a href="https://www.measurementlab.net/privacy/">Privacy Policy</a> for exact details. Typically, the only data collected is your IP address, the test data itself (upload/download sped) and metadata that may include the name and version of the web browser software, software application, or operating system used to conduct the test.</p>
+
+                </div>
+                <script type="text/javascript">
+                  function togglediv(id) {
+                      var div = document.getElementById(id);
+                      div.style.display = div.style.display == "block" ? "none" : "block";
+                  }
+                </script>
+            </div>
+          </div>
+          <div id="footer">
+            <div class="container text-center">
+              <p style="color:#00000071">Powered by <a href="https://cenic.org/network/operations/maps/network-maps" style="color:#001aff8d;">CalREN Network Engineering</a> in collaboration with <a href="https://www.measurementlab.net/about/" style="color:#001aff8d;">M-Lab</a>.</p>
+            </div>
+          </div>          
+    <script src="src/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

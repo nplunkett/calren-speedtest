@@ -70,6 +70,8 @@
       }
 
       const metadata = new URLSearchParams(config.metadata);
+      metadata.append("site", "lax04");
+      metadata.append("site", "lga05");
       // If a server was specified, use it.
       if (config && ('server' in config)) {
         // Add metadata as querystring parameters.

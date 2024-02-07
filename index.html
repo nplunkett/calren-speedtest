@@ -67,6 +67,8 @@
                       var div = document.getElementById(id);
                       div.style.display = div.style.display == "block" ? "none" : "block";
                   }
+                  //const listSites = "lax04&site=lga05";
+                  //const finalSiteList = new URLSearchParams(listSites);
                     function runTest() {
                         document.getElementById("testRun").disabled = true;
                         togglediv('results')
@@ -76,8 +78,7 @@
                             downloadworkerfile: "src/ndt7-download-worker.js",
                             uploadworkerfile: "src/ndt7-upload-worker.js",
                             metadata: {
-                                client_name: 'ndt7-html-example',
-                                site: 'lax04',
+                                client_name: 'calren-speedtest',
                             },
                         },
                         {
